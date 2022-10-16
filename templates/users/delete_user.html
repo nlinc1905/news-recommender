@@ -1,0 +1,54 @@
+{% extends '_base.html' %}
+
+{% block title %}Delete Account{% endblock title %}
+
+{% block content %}
+
+<br />
+<body class="has-sidemenu overflow-hidden-x">
+    <!-- ===============================================-->
+    <!--    Main Content-->
+    <!-- ===============================================-->
+    <main class="main min-vh-50 mr-4 ml-4" id="top">
+      <!-- ============================================-->
+      <!-- <section> begin ============================-->
+      <section class="py-0 mr-4 ml-4" id="page-about">
+        <div class="row justify-content-center">
+            <br />
+            <div class="col-12 mb-5 mb-md-7 mr-2 ml-2 text-center">
+                <div class="media mr-4 ml-4" data-zanim-timeline="{}" data-zanim-trigger="scroll">
+                    <div class="media-body mr-4 ml-4">
+                        <div class="overflow-hidden">
+                            <h2 class="fs-3 fs-sm-4" data-zanim-xs='{"delay":0.1,"animation":"slide-right"}'>
+                                <span class="text-center">
+								Delete Account
+                                </span>
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <form action="" method="post">
+                    {% csrf_token %}  <!--Token prevents CSRF attacks-->
+                    <h4>
+                        Are you sure you want to delete your account?
+                    </h4>
+                    <button class="btn btn-danger ml-2" type="submit">Delete</button>
+                </form>
+                <br />
+                <div class="media mr-4 ml-4" data-zanim-timeline="{}" data-zanim-trigger="scroll">
+                    <div class="media-body mr-4 ml-4">
+                        <div class="overflow-hidden">
+                            <h4 data-zanim-xs='{"delay":0.1,"animation":"slide-right"}'>
+                                <span class="text-center">
+								    <a href="{% url 'profile' %}">Go Back</a>
+                                </span>
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+    </main>
+{% endblock content %}

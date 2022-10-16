@@ -127,3 +127,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Pycharm
+.idea
+idea/
+
+# Files
+.DS_Store
+*.json
+checkpoint
+*ckpt*
+data/test
+data/train
+data/utils
+data/valid
+staticfiles/

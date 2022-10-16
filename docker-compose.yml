@@ -1,0 +1,46 @@
+version: '3'  # Docker Compose version
+
+# Set up services/containers
+services:
+
+    web:
+        build: .
+        # command: gunicorn --bind 0.0.0.0:8000 newsfinder.asgi -w 4 -k uvicorn.workers.UvicornWorker
+        entrypoint: startup_scripts/load_fixtures.sh
+        environment:
+            - ENVIRONMENT=development
+            # escape $ with an extra $
+            - DJANGO_SECRET_KEY=$$-d7bl5kex1-*fwi@2e^sx=%q8zmty4bg&_5iv%#ftz1mht2x(
+            - DJANGO_DEBUG=1
+            - DJANGO_SUPERUSER_PASSWORD=adminPW123
+            - DJANGO_SUPERUSER_USERNAME=admin
+            - DJANGO_SUPERUSER_EMAIL=admin@admin.com
+            - TODAYS_DATE=2019-11-09
+            - NBR_RECOMMENDATIONS=10
+            - MODEL=nrms
+            - EXPLORE_RATIO=0.0
+        volumes:
+            - .:/app
+        ports:
+            - 8000:8000
+        depends_on:
+            - db
+
+    db:
+        image: postgres:11
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        environment:
+            - "POSTGRES_HOST_AUTH_METHOD=trust"
+
+    model_api:
+        build: .
+        command: uvicorn recommender_system.src.main:app --host 0.0.0.0 --port 5000
+        ports:
+            - "5000:5000"
+        volumes:
+            - .:/app
+
+# volumes are where data persists between runs
+volumes:
+    postgres_data: {}

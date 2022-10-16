@@ -1,0 +1,15 @@
+{% extends '_base.html' %}
+
+{% block title %}About{% endblock title %}
+
+{% block content %}
+    <h3>About This Tool</h3>
+    <p>This is a dummy website for testing news article recommender systems and running A/B tests.</p>
+    <p>There are 5,000 users.  Each user has a different reading history.  You can log in as a specific user
+        with the same credential format as user 0:  User Name = user0, Password = userpassword
+    </p>
+    <p>Data for this website comes from Microsoft's
+        <a href="https://pypi.org/project/recommenders/">recommenders library</a> for Python.
+        The news articles come from <a href="https://msnews.github.io/">Microsoft's MIND dataset</a>.
+    </p>
+{% endblock content %}

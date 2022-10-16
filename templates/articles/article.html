@@ -1,0 +1,12 @@
+{% extends '_base.html' %}
+
+{% block title %}Article{% endblock title %}
+
+{% block content %}
+
+<h3>{{ article.title }}</h3>
+<p>{{ article.abstract }}</p>
+<p style="color:grey;">Category: {{ article.category }}</p>
+<a href="{{ article.url }}">Link to full article</a>
+
+{% endblock content %}
