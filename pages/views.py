@@ -8,6 +8,8 @@ from django.http import JsonResponse
 
 from articles.models import TopStories, UserHistory, Article
 from articles.forms import UserArticleForm
+from abtest.utils import ab_assign
+from abtest.models import Campaign
 
 
 def send_to_recommender_api(user, articles, return_rank=True):
@@ -40,7 +42,7 @@ def send_to_recommender_api(user, articles, return_rank=True):
 
 
 class HomePageDisplay(ListView):
-    template_name = 'home.html'
+    template_name = 'home.html'  # this default gets overridden by get_template_names method
     model = TopStories
     context_object_name = "news_list"
 
@@ -72,6 +74,24 @@ class HomePageDisplay(ListView):
         )][:int(os.environ["NBR_RECOMMENDATIONS"])]
         context['recommendations'] = todays_articles
         return context
+
+    def get_template_names(self):
+        """
+        Overrides template based on a condition.
+        Inspiration for this method:
+            https://stackoverflow.com/questions/60433194/how-to-pass-two-templates-in-a-same-class-based-views
+        """
+        campaign = Campaign.objects.get(name="Test Homepage")
+        assigned_variant = ab_assign(
+            request=self.request,
+            campaign=campaign,
+            default_template='abtest/homepage_variant_a.html',
+            sticky_session=False,
+            algorithm='thompson',
+            egreedy_eps=0.1,
+        )
+        template = assigned_variant['html_template']
+        return [template]
 
 
 class HomePageSave(FormView):
