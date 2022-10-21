@@ -12,7 +12,5 @@ python3 manage.py loaddata articles/fixtures/articles
 python3 manage.py loaddata articles/fixtures/topstories
 python3 manage.py loaddata articles/fixtures/userhistory
 
-python3 startup_scripts/setup_abtest.py
-
 # gunicorn newsfinder.wsgi -b 0.0.0.0:8000
 gunicorn --bind 0.0.0.0:8000 newsfinder.asgi -w 4 -k uvicorn.workers.UvicornWorker

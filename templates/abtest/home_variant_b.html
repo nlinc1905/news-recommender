@@ -30,9 +30,29 @@
     <div class="news_container_parent" style="clear: both;">
 
         <!--===============================================-->
+        <!-- Recommended News -->
+        <!--===============================================-->
+        <div class="recommended_news_container_div" style="float: left; width: 50%; padding-right: 2em;">
+            <h3 style="color:black; text-align:center;">Recommended</h3>
+            <br/>
+            <ul class="news_list" style="list-style: none;">
+                {% for news in recommendations %}
+                    <li class="news_list_item">
+                        <h5>
+                            <a class="article_title" href="{% url 'article' news.article_id %}">{{ news.title }}</a>
+                        </h5>
+                        <a hidden class="article_title2" href="{% url 'article' news.article_id %}"></a>
+                        <!-- <p>{{ news.abstract }}</p> -->
+                        <p style="color:grey;">{{ news.timestamp }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!--===============================================-->
         <!-- Latest News -->
         <!--===============================================-->
-        <div class="news_container_div" style="float: left; width: 50%; padding-right: 2em;">
+        <div class="news_container_div">
             <h3 style="color:black; text-align:center;">Today's Top Stories</h3>
             <br/>
             <ul class="news_list" style="list-style: none;">
@@ -47,26 +67,6 @@
                             <p style="color:grey;">{{ news.clicks }} Readers</p>
                         </li>
                     {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!--===============================================-->
-        <!-- Recommended News -->
-        <!--===============================================-->
-        <div class="recommended_news_container_div">
-            <h3 style="color:black; text-align:center;">Recommended</h3>
-            <br/>
-            <ul class="news_list" style="list-style: none;">
-                {% for news in recommendations %}
-                    <li class="news_list_item">
-                        <h5>
-                            <a class="article_title" href="{% url 'article' news.article_id %}">{{ news.title }}</a>
-                        </h5>
-                        <a hidden class="article_title2" href="{% url 'article' news.article_id %}"></a>
-                        <!-- <p>{{ news.abstract }}</p> -->
-                        <p style="color:grey;">{{ news.timestamp }}</p>
-                    </li>
                 {% endfor %}
             </ul>
         </div>
