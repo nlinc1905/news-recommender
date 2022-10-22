@@ -21,12 +21,12 @@ EPSILON = os.environ.get("EPSILON", default=0.1)
 campaign_to_variant_map = {
     "Test Home Page": {
         "A": {
-            "impressions": 1,
-            "conversions": 1,
+            "impressions": 10,
+            "conversions": 5,
         },
         "B": {
-            "impressions": 15,
-            "conversions": 15,
+            "impressions": 35,
+            "conversions": 20,
         },
     }
 }
@@ -100,18 +100,6 @@ class Conversion(BaseModel):
         }
 
 
-class CampaignRequest(BaseModel):
-    campaign: str
-
-    class Config:
-        # this will be used as the example in Swagger docs
-        schema_extra = {
-            "example": {
-                "campaign": "Test Home Page"
-            }
-        }
-
-
 app = FastAPI()
 # Instrumentator().instrument(app).expose(app)
 
@@ -130,6 +118,11 @@ def create_campaign(data: NewCampaign) -> dict:
         campaign_to_variant_map[data.campaign].update({v: {}})
         campaign_to_variant_map[data.campaign][v].update({"impressions": 1, "conversions": 1})
     return campaign_to_variant_map[data.campaign]
+
+
+@app.get("/check_user")
+def check_if_user_has_been_assigned_a_variant(user_id: str) -> str:
+    return str(user_id in user_to_campaign_variant_map)
 
 
 @app.post("/new_user")
@@ -181,12 +174,12 @@ def register_conversion(data: Conversion):
     return campaign_to_variant_map[data.campaign][data.variant]["conversions"]
 
 
-@app.post("/stats")
-def get_campaign_stats(data: CampaignRequest):
-    if data.campaign not in campaign_to_variant_map.keys():
-        raise KeyError(f"The campaign {data.campaign} does not exist.")
+@app.get("/stats")
+def get_campaign_stats(campaign: str) -> dict:
+    if campaign not in campaign_to_variant_map.keys():
+        raise KeyError(f"The campaign {campaign} does not exist.")
     traces = []
-    for v, v_data in campaign_to_variant_map[data.campaign].items():
+    for v, v_data in campaign_to_variant_map[campaign].items():
         successes = max(v_data['conversions'], 1)
         failures = max(v_data['impressions'] - v_data['conversions'], 1)
         # simulate samples from a beta distribution with alpha = successes and beta = failures
@@ -200,10 +193,11 @@ def get_campaign_stats(data: CampaignRequest):
         traces.append([0])
         traces.append(0.)
     return {
-        "Campaign": data.campaign,
+        "Campaign": campaign,
         "Posterior Mean for Variant A": np.mean(traces[0]),
         "Posterior Mean for Variant B": np.mean(traces[1]),
         "Probability that A is worse than B": np.mean(traces[2] < 0),
         "Probability that A is better than B": np.mean(traces[2] > 0),
         "Lift of B": traces[3],
+        "Variant Impressions": {k: v["impressions"] for k, v in campaign_to_variant_map[campaign].items()},
     }

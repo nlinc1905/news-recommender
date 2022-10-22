@@ -10,6 +10,13 @@ from articles.models import TopStories, UserHistory, Article
 from articles.forms import UserArticleForm
 
 
+CAMPAIGN_NAME = os.getenv("AB_TEST_CAMPAIGN", default="Test Home Page")
+VARIANT_TO_TEMPLATE_MAP = {
+    "A": "abtest/home_variant_a.html",
+    "B": "abtest/home_variant_b.html",
+}
+
+
 def send_to_recommender_api(user, articles, return_rank=True):
     """
     Posts to the recommender API and parses the response.
@@ -37,6 +44,52 @@ def send_to_recommender_api(user, articles, return_rank=True):
     resp_dict = json.loads(resp.text)['data']
     resp_dict = {int(k): v for k, v in resp_dict.items()}
     return resp_dict
+
+
+def post_impression_to_abtest_api(v: str) -> int:
+    data = {
+        "campaign": CAMPAIGN_NAME,
+        "variant": v
+    }
+    resp = requests.post(
+        'http://172.17.0.1:5001/impression',
+        data=json.dumps(data)
+    )
+    return resp.json()
+
+
+def post_conversion_to_abtest_api(v: str) -> int:
+    data = {
+        "campaign": CAMPAIGN_NAME,
+        "variant": v
+    }
+    resp = requests.post(
+        'http://172.17.0.1:5001/conversion',
+        data=json.dumps(data)
+    )
+    return resp.json()
+
+
+def check_user_in_abtest_api(user: str) -> bool:
+    resp = requests.get('http://172.17.0.1:5001/check_user', params={"user_id": user})
+    return resp.json() == 'True'
+
+
+def create_user_in_abtest_api(user: str):
+    resp = requests.post('http://172.17.0.1:5001/new_user', params={"user_id": user})
+    return resp.json()
+
+
+def get_sample_variant_from_abtest_api(user: str) -> str:
+    data = {
+        "campaign": CAMPAIGN_NAME,
+        "user_id": user
+    }
+    resp = requests.post(
+        'http://172.17.0.1:5001/variant',
+        data=json.dumps(data)
+    )
+    return resp.json()['variant_id']
 
 
 class HomePageDisplay(ListView):
@@ -75,15 +128,22 @@ class HomePageDisplay(ListView):
 
     def get_template_names(self):
         """
-        Overrides template based on a condition.
+        Overrides template based on a condition.  Used for AB testing.
         Inspiration for this method:
             https://stackoverflow.com/questions/60433194/how-to-pass-two-templates-in-a-same-class-based-views
         """
-        return ["home.html"]
+        has_variant = check_user_in_abtest_api(user=self.request.user.username)
+        if not has_variant:
+            # create the user with an empty variant
+            create_user_in_abtest_api(user=self.request.user.username)
+        # once a user is assigned a variant, they will only see that variant
+        v = get_sample_variant_from_abtest_api(user=self.request.user.username)
+        post_impression_to_abtest_api(v)
+        return [VARIANT_TO_TEMPLATE_MAP[v]]
 
 
 class HomePageSave(FormView):
-    # template_name = "home.html"
+    # template_name = "home.html"  # this default gets overridden by get_template_names method
     form_class = UserArticleForm
     model = UserHistory
 
@@ -103,11 +163,15 @@ class HomePageSave(FormView):
 
     def get_template_names(self):
         """
-        Overrides template based on a condition.
+        Overrides template based on a condition.  Used for AB testing.
         Inspiration for this method:
             https://stackoverflow.com/questions/60433194/how-to-pass-two-templates-in-a-same-class-based-views
         """
-        return ["home.html"]
+        # Since this version of Home Page is only for posting (click events), the user should already
+        # have an assigned variant.  get_sample_variant_from_abtest_api will just return the assigned variant.
+        v = get_sample_variant_from_abtest_api(user=self.request.user.username)
+        post_conversion_to_abtest_api(v)
+        return [VARIANT_TO_TEMPLATE_MAP[v]]
 
 
 class HomePageView(View):
