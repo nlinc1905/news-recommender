@@ -1,0 +1,127 @@
+{% extends '_base.html' %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+
+    <div class="row_div">
+
+        <div style="display: inline-block;">
+            {% if user.is_authenticated %}
+                Hello {{ user.email }}!
+                <p><a href="{% url 'logout' %}">Log Out</a></p>
+                <p hidden id="userid">{{ user.id }}</p>
+            {% else %}
+                <p>You are not logged in</p>
+                <a href="{% url 'login' %}">Log In</a> |
+                <a href="{% url 'signup' %}">Sign Up</a>
+            {% endif %}
+        </div>
+
+        <p style="float: right; text-align:right; color:red;">{{ TODAYS_DATE }}</p>
+
+    </div>
+    <br/>
+    <hr/>
+    {% if user.is_authenticated %}
+
+    <form hidden method="POST" id="save_article_click">{% csrf_token %}{{ form.as_p }}</form>
+
+    <div class="news_container_parent" style="clear: both;">
+
+        <!--===============================================-->
+        <!-- Recommended News -->
+        <!--===============================================-->
+        <div class="recommended_news_container_div" style="float: left; width: 50%; padding-right: 2em;">
+            <h3 style="color:black; text-align:center;">Recommended</h3>
+            <br/>
+            <ul class="news_list" style="list-style: none;">
+                {% for news in recommendations %}
+                    <li class="news_list_item">
+                        <h5>
+                            <a class="article_title" href="{% url 'article' news.article_id %}">{{ news.title }}</a>
+                        </h5>
+                        <a hidden class="article_title2" href="{% url 'article' news.article_id %}"></a>
+                        <!-- <p>{{ news.abstract }}</p> -->
+                        <p style="color:grey;">{{ news.timestamp }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!--===============================================-->
+        <!-- Latest News -->
+        <!--===============================================-->
+        <div class="news_container_div">
+            <h3 style="color:black; text-align:center;">Today's Top Stories</h3>
+            <br/>
+            <ul class="news_list" style="list-style: none;">
+                {% for news in news_list %}
+                    {% if news.is_today %}
+                        <li class="news_list_item">
+                            <h5>
+                                <a class="article_title" href="{% url 'article' news.article_id %}">{{ news.title }}</a>
+                            </h5>
+                            <a hidden class="article_title2" href="{% url 'article' news.article_id %}"></a>
+                            <!-- <p>{{ news.abstract }}</p> -->
+                            <p style="color:grey;">{{ news.clicks }} Readers</p>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    <script>
+        // wrap jquery in a function that waits until the base template has loaded jquery.min.js
+        var waitForJQuery = setInterval(function () {
+            if (typeof $ != 'undefined') {
+
+                var user_id = document.getElementById("userid").innerHTML;
+                var model = $("#models").val();
+                var explore_ratio = $("#explore_ratio").val();
+
+                function save_action_to_db(event, article_id) {
+                    console.log(
+                        "Saving user", user_id,
+                        "click for article", article_id
+                    );
+
+                    // submit the form
+                    $.ajax({
+                        url: "/",
+                        type: "POST",
+                        data: {
+                            "user_id": user_id,
+                            "article_id": article_id,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                    });
+                }
+
+                $('.article_title').on('click', function(event){
+                    // hold off on page redirect for the moment - uncomment this for testing purposes
+                    // event.preventDefault();
+
+                    // get article_id from the target href attribute
+                    var article_id = event.currentTarget.getAttribute("href").split('/');
+                    article_id = parseInt(article_id[article_id.length - 2]);
+
+                    // do stuff
+                    save_action_to_db(event, article_id);
+
+                    // redirect to the article page
+                    $('.article_title2').trigger('click');
+                });
+
+                clearInterval(waitForJQuery);
+
+            }
+        }, 10);
+
+    </script>
+
+{% endblock content %}

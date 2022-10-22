@@ -41,6 +41,14 @@ services:
         volumes:
             - .:/app
 
+    abtest_api:
+        build: .
+        command: uvicorn abtest.src.main:app --host 0.0.0.0 --port 5001
+        ports:
+            - "5001:5001"
+        volumes:
+            - .:/app
+
 # volumes are where data persists between runs
 volumes:
     postgres_data: {}
