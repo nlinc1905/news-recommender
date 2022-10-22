@@ -3,12 +3,16 @@ A Django website for browsing the latest news and recommended news based on user
 
 Its purpose is to serve as a minimal website to explore and test recommender systems, and AB testing.
 
+The website uses [Microsoft's MIND Dataset](https://msnews.github.io/) for its source data.  
+
 ![home_page](data/readme_files/home_page.png)
 
 New users can be created with Django Admin, and each user will see different recommendations based on their click 
 history.
 
-The website is set up to run on 1 recommender model, as defined by the environment variable in docker-compose.
+The website is set up to run on 1 recommender model, as defined by the environment variable in docker-compose.  The 
+date is frozen as November 9, 2019.  This date was determined by looking at the dates available in the MIND dataset and 
+choosing a date with high activity.  
 
 The website is set up to run an AB test on the home page that will switch the order of the recommended news and top 
 news columns.  
